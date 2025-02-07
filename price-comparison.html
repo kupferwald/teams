@@ -1,122 +1,198 @@
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-
-const PriceComparison = () => {
-  const [amount, setAmount] = useState(1000000);
-  const [selectedItem, setSelectedItem] = useState('taxpayer');
-
-  const items = {
-    coffee: { name: '☕ Coffee', price: 5, label: 'cup' },
-    burger: { name: '🍔 Burger', price: 5, label: 'burger' },
-    whiskey: { name: '🥃 Whiskey', price: 50, label: 'bottle' },
-    taxpayer: { name: '👤 US Taxpayer (year)', price: 20000, label: 'taxpayer' },
-    lambo: { name: '🏎️ Lamborghini', price: 100000, label: 'Lamborghini' },
-    yacht: { name: '🚢 Small Yacht', price: 500000, label: 'yacht' }
-  };
-
-  const formatNumber = (value) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-
-  const formatQuantity = (value) => {
-    return new Intl.NumberFormat('en-US').format(Math.floor(value));
-  };
-
-  const handleInputChange = (e) => {
-    const value = e.target.value.replace(/[^0-9]/g, '');
-    if (value === '') {
-      setAmount(0);
-      return;
-    }
-    const numValue = parseInt(value);
-    if (numValue >= 10000 && numValue <= 10000000000) {
-      setAmount(numValue);
-    }
-  };
-
-  const handleSliderChange = (e) => {
-    setAmount(Number(e.target.value));
-  };
-
-  const getQuantity = () => {
-    return Math.floor(amount / items[selectedItem].price);
-  };
-
-  const getItemLabel = () => {
-    const quantity = getQuantity();
-    const label = items[selectedItem].label;
-    return `${label}${quantity === 1 ? '' : 's'}`;
-  };
-
-  return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="text-center">Price Comparison Calculator</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <Label htmlFor="amount">Amount:</Label>
-          <div className="flex gap-4">
-            <Input
-              type="text"
-              id="amountInput"
-              value={formatNumber(amount).replace('$', '')}
-              onChange={handleInputChange}
-              className="text-right font-mono"
-              placeholder="Enter amount"
-            />
-          </div>
-          <input
-            type="range"
-            id="amount"
-            min="10000"
-            max="10000000000"
-            step="10000"
-            value={amount}
-            onChange={handleSliderChange}
-            className="w-full"
-          />
-          <div className="flex justify-between text-sm text-gray-500">
-            <span>{formatNumber(10000)}</span>
-            <span>{formatNumber(10000000000)}</span>
-          </div>
-        </div>
-
-        <RadioGroup
-          value={selectedItem}
-          onValueChange={setSelectedItem}
-          className="space-y-2"
-        >
-          {Object.entries(items).map(([key, item]) => (
-            <div key={key} className="flex items-center space-x-2">
-              <RadioGroupItem value={key} id={key} />
-              <Label htmlFor={key} className="flex justify-between w-full">
-                <span>{item.name}</span>
-                <span className="text-gray-500">{formatNumber(item.price)} each</span>
-              </Label>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Comparison Calculator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+        }
+        .card-title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            text-align: right;
+            font-family: monospace;
+        }
+        .slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: #666;
+        }
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .radio-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .radio-item:hover {
+            background-color: #f8f8f8;
+        }
+        .radio-item input {
+            margin-right: 10px;
+        }
+        .radio-label {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+        }
+        .price {
+            color: #666;
+        }
+        .result {
+            text-align: center;
+            font-size: 1.125rem;
+            font-weight: 500;
+            padding: 16px;
+            background-color: #f8f8f8;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1 class="card-title">Price Comparison Calculator</h1>
+        <div class="input-group">
+            <label class="label" for="amount">Amount:</label>
+            <input type="text" id="amountInput" class="input" placeholder="Enter amount">
+            <input type="range" id="amountSlider" class="slider" min="10000" max="2000000000" step="10000" value="1000000">
+            <div class="slider-labels">
+                <span>$10,000</span>
+                <span>$2,000,000,000</span>
             </div>
-          ))}
-        </RadioGroup>
-
-        <div className="text-center font-medium text-lg p-4 bg-gray-50 rounded-lg">
-          {formatNumber(amount)} buys approximately {formatQuantity(getQuantity())} {getItemLabel()}.
         </div>
-      </CardContent>
-      <CardFooter>
-        <div className="w-full text-center text-sm text-gray-500 space-y-1">
-          <p>🎮 Created by BIG BALLS & DOGE 🐕</p>
-          <p className="text-xs">For fun purposes only! Much wow! 🚀</p>
-        </div>
-      </CardFooter>
-    </Card>
-  );
-};
+        <div class="radio-group" id="itemsGroup"></div>
+        <div class="result" id="result"></div>
+    </div>
 
-export default PriceComparison;
+    <script>
+        const items = {
+            coffee: { name: '☕ Coffee', price: 5, label: 'cup' },
+            burger: { name: '🍔 Burger', price: 5, label: 'burger' },
+            whiskey: { name: '🥃 Whiskey', price: 50, label: 'bottle' },
+            taxpayer: { name: '👤 US Taxpayer (year)', price: 20000, label: 'taxpayer' },
+            lambo: { name: '🏎️ Lamborghini', price: 100000, label: 'Lamborghini' },
+            yacht: { name: '🚢 Small Yacht', price: 500000, label: 'yacht' }
+        };
+
+        let selectedItem = 'taxpayer';
+        let currentAmount = 1000000;
+
+        function formatNumber(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                maximumFractionDigits: 0,
+            }).format(value);
+        }
+
+        function formatQuantity(value) {
+            return new Intl.NumberFormat('en-US').format(Math.floor(value));
+        }
+
+        function updateResult() {
+            const quantity = Math.floor(currentAmount / items[selectedItem].price);
+            const label = items[selectedItem].label;
+            const pluralLabel = quantity === 1 ? label : label + 's';
+            document.getElementById('result').textContent = 
+                `${formatNumber(currentAmount)} buys approximately ${formatQuantity(quantity)} ${pluralLabel}.`;
+        }
+
+        // Initialize radio buttons
+        const itemsGroup = document.getElementById('itemsGroup');
+        Object.entries(items).forEach(([key, item]) => {
+            const div = document.createElement('label');
+            div.className = 'radio-item';
+            
+            div.innerHTML = `
+                <input type="radio" name="item" value="${key}" ${key === selectedItem ? 'checked' : ''}>
+                <span class="radio-label">
+                    <span>${item.name}</span>
+                    <span class="price">${formatNumber(item.price)} each</span>
+                </span>
+            `;
+            
+            itemsGroup.appendChild(div);
+        });
+
+        // Event listeners
+        document.getElementById('amountInput').value = formatNumber(currentAmount).replace('$', '');
+        document.getElementById('amountSlider').value = currentAmount;
+
+        document.getElementById('amountInput').addEventListener('input', (e) => {
+            const value = e.target.value.replace(/[^0-9]/g, '');
+            if (value === '') {
+                currentAmount = 0;
+            } else {
+                const numValue = parseInt(value);
+                if (numValue >= 10000 && numValue <= 2000000000) {
+                    currentAmount = numValue;
+                    document.getElementById('amountSlider').value = currentAmount;
+                }
+            }
+            updateResult();
+        });
+
+        document.getElementById('amountSlider').addEventListener('input', (e) => {
+            currentAmount = Number(e.target.value);
+            document.getElementById('amountInput').value = formatNumber(currentAmount).replace('$', '');
+            updateResult();
+        });
+
+        itemsGroup.addEventListener('change', (e) => {
+            if (e.target.type === 'radio') {
+                selectedItem = e.target.value;
+                updateResult();
+            }
+        });
+
+        updateResult();
+    </script>
+</body>
+</html>
