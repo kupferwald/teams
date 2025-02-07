@@ -1,0 +1,122 @@
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+
+const PriceComparison = () => {
+  const [amount, setAmount] = useState(1000000);
+  const [selectedItem, setSelectedItem] = useState('taxpayer');
+
+  const items = {
+    coffee: { name: '☕ Coffee', price: 5, label: 'cup' },
+    burger: { name: '🍔 Burger', price: 5, label: 'burger' },
+    whiskey: { name: '🥃 Whiskey', price: 50, label: 'bottle' },
+    taxpayer: { name: '👤 US Taxpayer (year)', price: 20000, label: 'taxpayer' },
+    lambo: { name: '🏎️ Lamborghini', price: 100000, label: 'Lamborghini' },
+    yacht: { name: '🚢 Small Yacht', price: 500000, label: 'yacht' }
+  };
+
+  const formatNumber = (value) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  const formatQuantity = (value) => {
+    return new Intl.NumberFormat('en-US').format(Math.floor(value));
+  };
+
+  const handleInputChange = (e) => {
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    if (value === '') {
+      setAmount(0);
+      return;
+    }
+    const numValue = parseInt(value);
+    if (numValue >= 10000 && numValue <= 10000000000) {
+      setAmount(numValue);
+    }
+  };
+
+  const handleSliderChange = (e) => {
+    setAmount(Number(e.target.value));
+  };
+
+  const getQuantity = () => {
+    return Math.floor(amount / items[selectedItem].price);
+  };
+
+  const getItemLabel = () => {
+    const quantity = getQuantity();
+    const label = items[selectedItem].label;
+    return `${label}${quantity === 1 ? '' : 's'}`;
+  };
+
+  return (
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle className="text-center">Price Comparison Calculator</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-4">
+          <Label htmlFor="amount">Amount:</Label>
+          <div className="flex gap-4">
+            <Input
+              type="text"
+              id="amountInput"
+              value={formatNumber(amount).replace('$', '')}
+              onChange={handleInputChange}
+              className="text-right font-mono"
+              placeholder="Enter amount"
+            />
+          </div>
+          <input
+            type="range"
+            id="amount"
+            min="10000"
+            max="10000000000"
+            step="10000"
+            value={amount}
+            onChange={handleSliderChange}
+            className="w-full"
+          />
+          <div className="flex justify-between text-sm text-gray-500">
+            <span>{formatNumber(10000)}</span>
+            <span>{formatNumber(10000000000)}</span>
+          </div>
+        </div>
+
+        <RadioGroup
+          value={selectedItem}
+          onValueChange={setSelectedItem}
+          className="space-y-2"
+        >
+          {Object.entries(items).map(([key, item]) => (
+            <div key={key} className="flex items-center space-x-2">
+              <RadioGroupItem value={key} id={key} />
+              <Label htmlFor={key} className="flex justify-between w-full">
+                <span>{item.name}</span>
+                <span className="text-gray-500">{formatNumber(item.price)} each</span>
+              </Label>
+            </div>
+          ))}
+        </RadioGroup>
+
+        <div className="text-center font-medium text-lg p-4 bg-gray-50 rounded-lg">
+          {formatNumber(amount)} buys approximately {formatQuantity(getQuantity())} {getItemLabel()}.
+        </div>
+      </CardContent>
+      <CardFooter>
+        <div className="w-full text-center text-sm text-gray-500 space-y-1">
+          <p>🎮 Created by BIG BALLS & DOGE 🐕</p>
+          <p className="text-xs">For fun purposes only! Much wow! 🚀</p>
+        </div>
+      </CardFooter>
+    </Card>
+  );
+};
+
+export default PriceComparison;
